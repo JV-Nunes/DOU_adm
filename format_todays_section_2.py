@@ -121,6 +121,11 @@ def remove_no(text_series):
     return remove_pattern(text_series, no_regex)
 
 
+def remove_processo(text_series):
+    processo_regex = r'(?:,?\s*?conforme\s*?|[\s\-.]*?)\(?Processo\s*?(?:SEI)?\s*?n?.?\s*?[\d.\-/]{15,20}\)?'
+    return remove_pattern(text_series, processo_regex)
+
+
 def fix_verbs(text_series):
     """
     Replace infinitive of main verbs of the acts (nomear, exonerar, etc.)
@@ -316,32 +321,21 @@ def name_to_sigla(text_series):
     Replace long reference of a orgão (name + possible acronym)
     by its acronym in a `text_series`. All orgãos are hard-coded. 
     """
-    
-    # Definição dos órgãos:
-    fnde_sigla = 'FNDE'
-    fnde_regex = prep_orgao_regex('Fundo Nacional de Desenvolvimento da Educa[cç][aã]o', fnde_sigla)
-    ibama_sigla = 'IBAMA'
-    ibama_regex = prep_orgao_regex('Instituto Brasileiro do Meio Ambiente e dos Recursos Naturais Renov[aá]veis', 
-                                    ibama_sigla)
-    icmbio_sigla = 'ICMBio'
-    icmbio_regex = prep_orgao_regex('Instituto Chico Mendes de Conserva[cç][aã]o da Biodiversidade', icmbio_sigla)
-    incra_sigla = 'INCRA'
-    incra_regex = prep_orgao_regex('Instituto Nacional de Coloniza[cç][aã]o e Reforma Agr[aá]ria', incra_sigla)
-    funai_sigla = 'FUNAI'
-    funai_regex = prep_orgao_regex('Funda[cç][aã]o Nacional do [IÍ]ndio', funai_sigla)
-    capes_sigla = 'CAPES'
-    capes_regex = prep_orgao_regex('Coordena[cç][aã]o de Aperfei[cç]oamento de Pessoal de N[ií]vel Superior', 
-                                   capes_sigla)
-    inep_sigla = 'INEP'
-    inep_regex = prep_orgao_regex('Instituto Nacional de Estudos e Pesquisas Educacionais An[ií]sio Teixeira',
-                                  inep_sigla)
-    abin_sigla = 'ABIN'
-    abin_regex = prep_orgao_regex('Ag[eê]ncia Brasileira de Intelig[eê]ncia', abin_sigla)
-    
-    # Cria lista:
-    sigla_list = [fnde_sigla, ibama_sigla, icmbio_sigla, incra_sigla, funai_sigla, capes_sigla, inep_sigla]
-    regex_list = [fnde_regex, ibama_regex, icmbio_regex, incra_regex, funai_regex, capes_regex, inep_regex]
 
+    # Hard-coded acronyms and names of órgãos:
+    sigla_list = ['FNDE', 'IBAMA', 'ICMBio', 'INCRA', 'FUNAI', 'CAPES', 'INEP', 'CNPq', 'ABIN']
+    orgao_list = ['Fundo Nacional de Desenvolvimento da Educa[cç][aã]o',
+                  'Instituto Brasileiro do Meio Ambiente e dos Recursos Naturais Renov[aá]veis',
+                  'Instituto Chico Mendes de Conserva[cç][aã]o da Biodiversidade',
+                  'Instituto Nacional de Coloniza[cç][aã]o e Reforma Agr[aá]ria',
+                  'Funda[cç][aã]o Nacional do [IÍ]ndio',
+                  'Coordena[cç][aã]o de Aperfei[cç]oamento de Pessoal de N[ií]vel Superior',
+                  'Instituto Nacional de Estudos e Pesquisas Educacionais An[ií]sio Teixeira',
+                  'Conselho Nacional de Desenvolvimento Cient[ií]fico e Tecnol[oó]gico',
+                  'Ag[eê]ncia Brasileira de Intelig[eê]ncia']
+    # Create robust regexes out of name and acronym:
+    regex_list = [prep_orgao_regex(name, acronym) for name, acronym in zip(orgao_list, sigla_list)]
+    
     new_text_series = text_series.copy()
     for regex, sigla in zip(regex_list, sigla_list):
         new_text_series = new_text_series.str.replace(regex, sigla, case=False)
@@ -413,7 +407,8 @@ def prepare_with_acts(materia_series, act_regex):
     cleaned_acts  = remove_siape(cleaned_acts)
     cleaned_acts  = remove_cpf(cleaned_acts)
     cleaned_acts  = remove_no(cleaned_acts)
-
+    cleaned_acts  = remove_processo(cleaned_acts)
+    
     # Clean text:
     cleaned_acts  = fix_verbs(cleaned_acts)
     cleaned_acts  = standardize_cargos(cleaned_acts)
