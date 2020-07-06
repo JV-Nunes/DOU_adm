@@ -1,0 +1,43 @@
+regex,label,importance
+Atos do Poder Executivo,Atos do Executivo,5
+Controladoria-Geral da União,CGU,2
+Empresa Brasileira de Pesquisa Agropecuária,EMBRAPA,1
+Ministério da Agricultura,Agricultura,3
+Instituto Nacional de Colonização e Reforma Agrária,INCRA,2
+Agência Nacional do Cinema,ANCINE,2
+Ministério da Cidadania,Cidadania,3
+Agência Nacional de Telecomunicações,Anatel,2
+Ministério da Ciência,C&T,3
+Ministério das Comunicações,Comunicações,3
+Comando da Aeronáutica,Aeronáutica,2
+Comando da Marinha,Marinha,2
+Comando do Exército,Exército,2
+Ministério da Defesa,Defesa,3
+Banco Nacional de Desenvolvimento Econômico e Social,BNDES,2
+Comissão de Valores Mobiliários,CVM,1
+Ministério da Economia,Economia,4
+Fundação Coordenação de Aperfeiçoamento de Pessoal de Nível Superior,CAPES,2
+Ministério da Educação,Educação,5
+Agência Nacional de Aviação Civil,ANAC,1
+Agência Nacional de Transportes Aquaviários,ANTAQ,1
+Agência Nacional de Transportes Terrestres,ANTT,1
+Ministério da Infraestrutura,Infraestrutura,3
+Fundação Nacional do Índio,FUNAI,1
+Ministério da Justiça,Justiça,3
+Direitos Humanos,Direitos Humanos,3
+Agência Nacional de Saúde,ANS,1
+Agência Nacional de Vigilância Sanitária,ANVISA,1
+Fundação Nacional de Saúde,FUNASA,1
+Ministério da Saúde,Saúde,3
+Ministério das Relações Exteriores,Relações Exteriores,3
+Agência Nacional de Energia Elétrica,ANEEL,1
+Agência Nacional do Petróleo,ANP,1
+Ministério de Minas e Energia,Minas e Energia,1
+Agência Nacional de Águas,ANA,1
+Ministério do Desenvolvimento Regional,Desenv. Regional,3
+Instituto Brasileiro do Meio Ambiente e dos Recursos Naturais Renováveis,IBAMA,2
+Instituto Chico Mendes de Conservação da Biodiversidade,ICMBio,2
+Ministério do Meio Ambiente,Meio Ambiente,4
+Instituto do Patrimônio Histórico e Artístico Nacional,IPHAN,1
+Ministério do Turismo,Turismo,3
+Presidência da República,Presidência,5
