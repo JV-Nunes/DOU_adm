@@ -509,7 +509,7 @@ def prepare_no_acts(materia_series):
     """
     cleaned_non_acts = materia_series
     cleaned_non_acts = remove_preamble(cleaned_non_acts)
-    cleaned_non_acts = truncate_text(cleaned_non_acts)
+    cleaned_non_acts = cleaned_non_acts.apply(truncate_text)
     
     return cleaned_non_acts
 
@@ -562,7 +562,8 @@ def sort_orgaos_by_acts_importance(message_df, orgao_importance):
 
 orgao_label_file = 'data/correspondencia_orgao_label_DOU_2.csv'
 todays_dou_data  = 'temp/daily_ranked_dou_2_set.csv'
-zap_group_link   = 'https://chat.whatsapp.com/GJGfNBzcZZT9xuueZUBbTU'
+zap_group_link   = 'https://chat.whatsapp.com/JUwrwHaDpnBK6WnAgMTLXV'
+#zap_group_link   = 'https://chat.whatsapp.com/GJGfNBzcZZT9xuueZUBbTU'
 post_file_prefix = 'posts/dou_2_'
 text_editor      = 'gedit'
 
@@ -655,6 +656,8 @@ with open(filename, 'w') as f:
             # Footnote:        
     f.write('*Gabinete Compartilhado Acredito*\n_Para se inscrever no boletim, acesse o link:_\n' + zap_group_link)
 
+    # Extra emojis for later formatting:
+    f.write('\n\n👑🎩🧢👨🏻‍✈️💬▪️')
 
 ### Open text editor:
 
