@@ -22,8 +22,45 @@ import subprocess
 import google.auth
 import os
 import csv
+import random
+
+
+### Hard-coded stuff:
+
+orgao_label_file = 'data/correspondencia_orgao_label_DOU_2.csv'
+todays_dou_data  = 'temp/daily_ranked_dou_2_set.csv'
+post_file_prefix = 'posts/dou_2_'
+text_editor      = 'gedit'
+
+prod_query = """
+SELECT relevancia, identifica, secao, edicao, data_pub, orgao, ementa, resumo, fulltext, assina, cargo, url 
+FROM `gabinete-compartilhado.executivo_federal_dou.sheets_classificacao_secao_2`
+WHERE relevancia IS NOT NULL
+AND   relevancia >= 3
+"""
+
 
 ### FUNCTIONS ###
+
+
+def random_zap_link():
+    """
+    Randomly return a whatsapp group link 
+    from a pool of hard-coded links.
+    """
+    
+    # Hard-coded:
+    zap_link_5 = 'https://chat.whatsapp.com/IzlCqLTbLavFpI1V873e5G'
+    zap_link_4 = 'https://chat.whatsapp.com/Jr6o6AVvbIF3aU9un6yT67'
+    zap_link_3 = 'https://chat.whatsapp.com/JjS23bAbI1f8cVVEHL0RPK'
+    zap_link_2 = 'https://chat.whatsapp.com/HgmP8M6xl95GZV36QXSVYq'
+    zap_link_1 = 'https://chat.whatsapp.com/B4oeQM4Ji74Kr4Xm99BIZY'
+
+    zap_links = [zap_link_1, zap_link_2, zap_link_3, zap_link_4, zap_link_5]
+    #zap_links = [zap_link_3, zap_link_5]
+    
+    i = random.randint(0, len(zap_links) - 1)
+    return zap_links[i]
 
 
 def bigquery_to_pandas(query, project='gabinete-compartilhado', credentials_file='/home/skems/gabinete/projetos/keys-configs/gabinete-compartilhado.json'):
@@ -558,22 +595,6 @@ def sort_orgaos_by_acts_importance(message_df, orgao_importance):
 ### MAIN CODE ###
 
 
-### Hard-coded stuff:
-
-orgao_label_file = 'data/correspondencia_orgao_label_DOU_2.csv'
-todays_dou_data  = 'temp/daily_ranked_dou_2_set.csv'
-zap_group_link   = 'https://chat.whatsapp.com/JUwrwHaDpnBK6WnAgMTLXV'
-#zap_group_link   = 'https://chat.whatsapp.com/GJGfNBzcZZT9xuueZUBbTU'
-post_file_prefix = 'posts/dou_2_'
-text_editor      = 'gedit'
-
-prod_query = """
-SELECT relevancia, identifica, secao, edicao, data_pub, orgao, ementa, resumo, fulltext, assina, cargo, url 
-FROM `gabinete-compartilhado.executivo_federal_dou.sheets_classificacao_secao_2`
-WHERE relevancia IS NOT NULL
-AND   relevancia >= 3
-"""
-
 ### Load data:
 
 # Table that translates orgao to message topic:
@@ -653,11 +674,12 @@ with open(filename, 'w') as f:
             e = assign_emoji(t)
             f.write(e + ' ' + t + '\n' + u + '\n\n')
 
-            # Footnote:        
-    f.write('*Gabinete Compartilhado Acredito*\n_Para se inscrever no boletim, acesse o link:_\n' + zap_group_link)
+            # Footnote:
+    zap_link = random_zap_link()
+    f.write('*Gabinete Compartilhado Acredito*\n_Para se inscrever no boletim, acesse o link:_\n' + zap_link)
 
     # Extra emojis for later formatting:
-    f.write('\n\n👑🎩🧢👨🏻‍✈️💬▪️')
+    f.write('\n\n👑🎩🧢👨🏻‍✈️💬▪️💼⚖🎓️➕')
 
 ### Open text editor:
 
