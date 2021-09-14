@@ -1,0 +1,84 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap');
+
+/* Remove Streamlit toolbar menu */
+[data-testid=stToolbar] {
+    display: none;
+}
+
+
+/* Remove botões de aumentar o tamanho de uma imagem */
+[title="View fullscreen"] {
+    display: none;
+}
+
+/* Remove o desenho de um link que aparece ao lado dos markdowns */
+.css-1aru7dd {
+    display: none;
+}
+
+/* Center images */
+[data-testid="stImage"] {
+    margin: auto;
+}
+
+/* General banner (for app title and sections) */
+.banner {
+    position: relative;    
+    margin-bottom: 10px;
+    margin-top: 12px;
+    
+}
+/* Banner for app title */
+.banner.title {
+    height: 100px;    
+    font-weight: bold; 
+    text-align: left;
+    color: black;
+    font-family: 'Bitter', 'Noto Sans', sans-serif;
+    font-style: normal;
+    letter-spacing: 0;
+    font-size: 40px;
+}
+/* Banner for start of section */
+.banner.section {
+    height: 50px;
+    background-color: rgba(230, 230, 230, 0.5);
+    /*font-weight: bold;*/
+    font-size: 25px;
+    
+    
+}
+
+/* Text in banner */
+.banner-text {    
+    margin: 0;
+    position: relative;
+    top: 10%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);   
+    display:inline;
+    padding-left: 10px;
+    
+}
+
+/* Icon in banner */
+.banner-icon {    
+    margin-right: 8px;
+    margin-left: 8px;
+    height: 80%;
+    transform: translateY(10%);
+    display: inline;
+    float: left;
+}
+.banner-icon.right {
+    float: right;
+}
+.banner-icon.left {
+    float: left;
+}
+.banner-icon img{
+    height: 100%;
+    margin: 0px;
+}
+
