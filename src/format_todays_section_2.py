@@ -757,7 +757,7 @@ def create_post(message_df, orgao_label, verbose=False):
     return post
 
 
-def etl_section2_post(verbose=False):
+def etl_section2_post(orgao_label_path='../data/correspondencia_orgao_label_DOU_2.csv', verbose=False):
     """
     Load ranked articles from DOU section 2, stored in Google sheets,
     filter and process them and write a whastapp post. All processing
@@ -779,7 +779,7 @@ def etl_section2_post(verbose=False):
     # Table that translates orgao to message topic:
     if verbose:
         print('Loading orgão-label table...')
-    orgao_label = pd.read_csv('../data/correspondencia_orgao_label_DOU_2.csv')
+    orgao_label = pd.read_csv(orgao_label_path)
     
     # Load articles and their ranking
     articles_df = get_ranked_section2(verbose=verbose)
@@ -826,7 +826,7 @@ def main(args=['script_filename']):
     text_editor = 'gedit'
     
     # Generate post:
-    post = etl_section2_post(verbose=True)
+    post = etl_section2_post('data/correspondencia_orgao_label_DOU_2.csv', verbose=True)
     
     # Write to file:
     filename = gen_post_filename()
