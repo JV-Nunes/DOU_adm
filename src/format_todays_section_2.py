@@ -15,6 +15,7 @@ message is opened in a text editor.
 Written by: Henrique S. Xavier, hsxavier@gmail.com, on 03/jul/2020.
 """
 
+import sys
 import pandas as pd
 import re
 from datetime import date
@@ -23,45 +24,10 @@ import subprocess
 import google.auth
 import os
 import csv
-import random
 
-
-### Hard-coded stuff:
-
-orgao_label_file = 'data/correspondencia_orgao_label_DOU_2.csv'
-todays_dou_data  = 'temp/daily_ranked_dou_2_set.csv'
-post_file_prefix = 'posts/dou_2_'
-text_editor      = 'gedit'
-
-prod_query = """
-SELECT relevancia, identifica, secao, edicao, data_pub, orgao, ementa, resumo, fulltext, assina, cargo, url 
-FROM `gabinete-compartilhado.executivo_federal_dou.sheets_classificacao_secao_2`
-WHERE relevancia IS NOT NULL
-AND   relevancia >= 3
-"""
-
+import random_zaplink as rz
 
 ### FUNCTIONS ###
-
-
-def random_zap_link():
-    """
-    Randomly return a whatsapp group link 
-    from a pool of hard-coded links.
-    """
-    
-    # Hard-coded:
-    zap_link_5 = 'https://chat.whatsapp.com/IzlCqLTbLavFpI1V873e5G'
-    zap_link_4 = 'https://chat.whatsapp.com/Jr6o6AVvbIF3aU9un6yT67'
-    zap_link_3 = 'https://chat.whatsapp.com/JjS23bAbI1f8cVVEHL0RPK'
-    zap_link_2 = 'https://chat.whatsapp.com/HgmP8M6xl95GZV36QXSVYq'
-    zap_link_1 = 'https://chat.whatsapp.com/B4oeQM4Ji74Kr4Xm99BIZY'
-
-    zap_links = [zap_link_1, zap_link_2, zap_link_3, zap_link_4, zap_link_5]
-    #zap_links = [zap_link_3, zap_link_5]
-    
-    i = random.randint(0, len(zap_links) - 1)
-    return zap_links[i]
 
 
 def bigquery_to_pandas(query, project='gabinete-compartilhado', credentials_file='/home/skems/gabinete/projetos/keys-configs/gabinete-compartilhado.json'):
@@ -320,7 +286,7 @@ def add_label_to_df(df, orgao_label_df, lookup_col='orgao'):
     """
     df['label'] = None
 
-    for i in range(len(orgao_label)):
+    for i in range(len(orgao_label_df)):
 
         # Get one regex-label pair:
         regex = orgao_label_df.loc[i, 'regex']
@@ -593,95 +559,286 @@ def sort_orgaos_by_acts_importance(message_df, orgao_importance):
     return ordered_sections
 
 
-### MAIN CODE ###
-
-
-### Load data:
-
-# Table that translates orgao to message topic:
-print('Loading orgão-label table...')
-orgao_label = pd.read_csv(orgao_label_file)
-
-# Download today's ranked DOU (section 2) materias:
-test_set = load_data_from_local_or_bigquery(prod_query, todays_dou_data, force_bigquery=True)
-print('# matérias (all):', len(test_set))
-
-
-### Prepare the data:
-
-print('Processing the matérias...')
-
-# Add label tag to all texts:
-add_label_to_df(test_set, orgao_label)
-
-# Use regex to detect typical act verbs:
-enter_regex   = r'nomear|designar'
-exit_regex    = r'exonerar|dispensar'
-flexing_regex = r'(?!(?:am|á|ão|em))'
-act_regex     = r'(' + enter_regex + '|' + exit_regex + ')' + flexing_regex
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
+def get_ranked_section2(save_data=False, verbose=False):
+    """
+    Download manually ranked DOU 2 articles from Google sheets
+    via BigQuery. Query and filename are hard-coded. Filtering 
+    criteria for articles, based on ranking, are applied here.
     
-    # Get articles with default act detectors:
-    with_act_regex_df = test_set.loc[test_set.fulltext.str.contains(act_regex, case=False)]
-    print('# matérias (containing act verbs):', len(with_act_regex_df))
-    # Get articles without default act detectors:
-    no_act_regex_df   = test_set.loc[~test_set.fulltext.str.contains(act_regex, case=False)]
-    print('# matérias (without act verbs):', len(no_act_regex_df))
+    Input
+    -----
+    save_data : bool
+        Wether or not to save the downloaded data to a CSV file.
+    verbose : bool
+        Whether or not to print log messages along the funcion
+        execution.
+        
+    Return
+    ------
+    
+    articles_df : DataFrame
+        The data from DOU section 2 ranking in Google sheets.
+    """
+    
+    # Hard-coded:
+    prod_query = """
+    SELECT relevancia, identifica, secao, edicao, data_pub, orgao, ementa, resumo, fulltext, assina, cargo, url 
+    FROM `gabinete-compartilhado.executivo_federal_dou.sheets_classificacao_secao_2`
+    WHERE relevancia IS NOT NULL
+    AND   relevancia >= 3
+    """
+    todays_dou_data  = 'temp/daily_ranked_dou_2_set.csv'
+    
+    # Download today's ranked DOU (section 2) materias:
+    articles_df = load_data_from_local_or_bigquery(prod_query, todays_dou_data, force_bigquery=True, save_data=save_data)
+    if verbose:
+        print('# matérias (all):', len(articles_df))
+        
+    return articles_df
 
-    # Clean acts for posting:
-    cleaned_with_acts = prepare_with_acts(with_act_regex_df['fulltext'], act_regex)
-    cleaned_no_acts   = prepare_no_acts(no_act_regex_df['fulltext'])
-    # Join both kinds of matérias:
-    cleaned_all = pd.concat([cleaned_with_acts, cleaned_no_acts], sort=False)
+
+def process_ranked_articles(articles_df, orgao_label, verbose=False):
+    """
+    Clean DataFrame of manually ranked section 2 DOU articles
+    and build a DataFrame with post content.
+    
+    Input
+    -----
+    articles_df : DataFrame
+        DataFrame of manually ranked articles from section 2 
+        of DOU. This ranking is performed in Google Sheets and
+        pulled from BigQuery.
+    orgao_label : DataFrame
+        DataFrame containing acronyms and name simplifications 
+        for órgãos federais.
+    verbose : bool
+        Whether or not to print log messages along the funcion
+        execution.
+        
+    Return
+    ------
+    messages_df : DataFrame
+        A Dataframe with the post's contents, separated in 
+        columns according to their role (e.g. text, link, etc).
+    """
+    
+    ### Process articles:    
+    if verbose:
+        print('Processing the matérias...')
+    
+    # Add label tag to all texts:
+    add_label_to_df(articles_df, orgao_label)
+    
+    # Use regex to detect typical act verbs:
+    enter_regex   = r'nomear|designar'
+    exit_regex    = r'exonerar|dispensar'
+    flexing_regex = r'(?!(?:am|á|ão|em))'
+    act_regex     = r'(' + enter_regex + '|' + exit_regex + ')' + flexing_regex
+    
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        
+        # Get articles with default act detectors:
+        with_act_regex_df = articles_df.loc[articles_df.fulltext.str.contains(act_regex, case=False)]
+        if verbose:
+            print('# matérias (containing act verbs):', len(with_act_regex_df))
+        # Get articles without default act detectors:
+        no_act_regex_df   = articles_df.loc[~articles_df.fulltext.str.contains(act_regex, case=False)]
+        if verbose:
+            print('# matérias (without act verbs):', len(no_act_regex_df))
+    
+        # Clean acts for posting:
+        cleaned_with_acts = prepare_with_acts(with_act_regex_df['fulltext'], act_regex)
+        cleaned_no_acts   = prepare_no_acts(no_act_regex_df['fulltext'])
+        # Join both kinds of matérias:
+        cleaned_all = pd.concat([cleaned_with_acts, cleaned_no_acts], sort=False)
+    
+    
+    ### Prepare the message:
+    if verbose:
+        print('Preparing the post...')
+    
+    # Build zap message DataFrame:
+    message_df = pd.DataFrame()
+    message_df['text']       = cleaned_all
+    message_df['importance'] = cleaned_all.apply(act_importance)
+    message_df['section']    = articles_df['label'][cleaned_all.index]
+    message_df['url']        = articles_df['url'][cleaned_all.index]
+    message_df = message_df.reset_index(drop=True)
+
+    return message_df 
 
 
-### Prepare the message:
+def write_to_post(media, content):
+    """
+    Write `content` (str) to `media`.
+    
+    Input
+    -----
+    media : str or file (TextIOWrapper of _io module)
+        Where to write the `content`.
+    content : str
+        String to be written to `media`. If `media` is a string,
+        append the content to the string.
+    
+    Return
+    ------
+    updated_media : str or file (TextIOWrapper of _io module)
+        Either return the input string updated with the 
+        new `content` or the input file.
+    """
+    
+    # Write to str:
+    if type(media) == str:
+        media = media + content
+    
+    # Write to file:
+    else:
+        media.write(content)
+    
+    return media
 
-print('Preparing the post...')
 
-# Build zap message DataFrame:
-message_df = pd.DataFrame()
-message_df['text']       = cleaned_all
-message_df['importance'] = cleaned_all.apply(act_importance)
-message_df['section']    = test_set['label'][cleaned_all.index]
-message_df['url']        = test_set['url'][cleaned_all.index]
-message_df = message_df.reset_index(drop=True)
-
-# Prepare the order in which the orgãos will appear in the message:
-ordered_sections = sort_orgaos_by_acts_importance(message_df, orgao_label.set_index('label')['importance'])
-
-
-### Print the message:
-
-print('Writing post...')
-
-filename = post_file_prefix + date.today().strftime('%Y-%m-%d') + '.txt'
-with open(filename, 'w') as f:
-
+def create_post(message_df, orgao_label, verbose=False):
+    """
+    Write the whastapp post containing the processed data
+    `message_df`.
+    
+    Input
+    -----
+    message_df : DataFrame
+        DOU articles from section 2, manually ranked and then 
+        cleaned by previous routines.
+    orgao_label : DataFrame
+        DataFrame containing acronyms and name simplifications 
+        for órgãos federais.
+    verbose : bool
+        Whether or not to print log messages along the funcion
+        execution.
+        
+    Return
+    ------
+    
+    post : str
+        A string containing the entire post, created with 
+        `message_df` information.
+    """
+    
+    # Prepare the order in which the orgãos will appear in the message:
+    ordered_sections = sort_orgaos_by_acts_importance(message_df, orgao_label.set_index('label')['importance'])
+    
+    ### Print the message:
+    if verbose:
+        print('Writing post...')
+    post = ''
+        
     # Header:
     today = date.today().strftime(' (%d/%m)')
-    f.write('♟️ *Alterações em cargos altos' + today + '* ♟️\n\n')
+    post = write_to_post(post, '♟️ *Alterações em cargos altos' + today + '* ♟️\n\n')
 
     # Loop over orgãos:
     for s in ordered_sections:
-        f.write('*' + s + '*\n\n')
+        post = write_to_post(post, '*' + s + '*\n\n')
 
         # Select acts from this section:
         section_acts = message_df.loc[message_df['section'] == s].sort_values('importance', ascending=False)
         for t, u in zip(section_acts['text'].values, section_acts['url'].values):
             # Print message:
             e = assign_emoji(t)
-            f.write(e + ' ' + t + '\n' + u + '\n\n')
+            post = write_to_post(post, e + ' ' + t + '\n' + u + '\n\n')
 
-            # Footnote:
-    zap_link = random_zap_link()
-    f.write('*Gabinete Compartilhado Acredito*\n_Para se inscrever no boletim, acesse o link:_\n' + zap_link)
+    # Footnote:
+    zap_link = rz.random_zap_link()
+    post = write_to_post(post, '*Gabinete Compartilhado Acredito*\n_Para se inscrever no boletim, acesse o link:_\n' + zap_link)
 
     # Extra emojis for later formatting:
-    f.write('\n\n👑🎩🧢👨🏻‍✈️💬▪️💼⚖🎓️➕')
+    post = write_to_post(post, '\n\n👑🎩🧢👨🏻‍✈️💬▪️💼⚖🎓️➕')
 
-### Open text editor:
+    return post
 
-subprocess.call([text_editor, filename])
+
+def etl_section2_post(verbose=False):
+    """
+    Load ranked articles from DOU section 2, stored in Google sheets,
+    filter and process them and write a whastapp post. All processing
+    parameters are hard-coded.
+    
+    Input
+    -----
+    verbose : bool
+        Whether or not to print log messages along the funcion
+        execution.
+        
+    Return
+    ------   
+    post : str
+        A string containing the entire post, created with 
+        `message_df` information.    
+    """
+    
+    # Table that translates orgao to message topic:
+    if verbose:
+        print('Loading orgão-label table...')
+    orgao_label = pd.read_csv('../data/correspondencia_orgao_label_DOU_2.csv')
+    
+    # Load articles and their ranking
+    articles_df = get_ranked_section2(verbose=verbose)
+    
+    # Process ranked DOU matérias to build post's elements:
+    message_df = process_ranked_articles(articles_df, orgao_label, verbose=verbose)
+    
+    # Write post to string:
+    post = create_post(message_df, orgao_label, verbose)
+
+    return post
+
+
+def gen_post_filename(post_file_prefix='posts/dou_2_'):
+    """
+    Generate a filename (with path) starting with
+    `post_file_prefix`, followed by the current date.
+    Returns a str.
+    """    
+    filename = post_file_prefix + date.today().strftime('%Y-%m-%d') + '.txt'    
+    return filename
+
+
+### MAIN CODE ###
+
+def main(args=['script_filename']):
+    """
+    Function that runs this file as a script.
+    `args` (list of str) can be passed to it 
+    using sys.argv. Set `n_args` below to 
+    the number of arguments the script accepts.
+    """
+    # Hard-coded:
+    n_args = 0
+    
+    # Docstring output:
+    if len(args) != 1 + n_args: 
+        print(__doc__)
+        sys.exit(1)
+
+    # START OF SCRIPT:
+
+    # Hard-coded stuff:
+    text_editor = 'gedit'
+    
+    # Generate post:
+    post = etl_section2_post(verbose=True)
+    
+    # Write to file:
+    filename = gen_post_filename()
+    with open(filename, 'w') as f:
+        f.write(post)
+    
+    # Open text editor:
+    subprocess.call([text_editor, filename])
+        
+
+
+# If running this code as a script:
+if __name__ == '__main__':
+    #main()
+    main(sys.argv)

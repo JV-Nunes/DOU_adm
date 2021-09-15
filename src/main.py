@@ -11,10 +11,13 @@ import numpy as np
 import time
 
 import session as ss
-import count_DOU_articles as ca
+from compute_download_button import compute_download_button
 import htmlhacks as hh
 import df_formatter as ff
+import count_DOU_articles as ca
+import run_python_process as rp
 import create_section_1_post as c1
+import format_todays_section_2 as f2
 
 
 def progress_bar(bar, duration):
@@ -24,8 +27,7 @@ def progress_bar(bar, duration):
     
     for percent_complete in range(101):
         time.sleep(duration / 100)
-        bar.progress(percent_complete)
-    
+        bar.progress(percent_complete) 
 
 
 def external_link(text, url):
@@ -65,21 +67,20 @@ def generate_formatters(df):
     return fmt_funcs
 
 
-    
 def app_main():   
     
     # Design settings:
     four_columns  = np.array([0.40, 0.28, 0.22, 0.10])
-    three_columns = np.array([0.40, 0.38, 0.22])
+    three_columns = np.array([0.40, 0.36, 0.24])
     two_columns   = np.array([three_columns[0] + three_columns[1], three_columns[2]])
     
     # Persistent attributes:
-    session = ss.get(map_counter=0, ai_counter=0)
+    session = ss.get(map_counter=0, ai_counter=0, prep2_counter=0, post2=None)
     
     # Count articles:
     
     # Place title and buttion:
-    col1, col2 = st.columns(two_columns + np.array([0.07,-0.07]))
+    col1, col2 = st.columns(two_columns + np.array([0.09,-0.09]))
     with col1:
         st.markdown('### Matérias por estágio de captura')
     with col2:
@@ -100,7 +101,7 @@ def app_main():
     # Run IA:
     
     # Place title and button:
-    col1, col2 = st.columns(two_columns + np.array([0.03,-0.03]))
+    col1, col2 = st.columns(two_columns + np.array([0.05,-0.05]))
     with col1:
         st.markdown('### Pré-ordenamento')
     with col2:        
@@ -115,7 +116,8 @@ def app_main():
     # Run AI:
     if run_ai:
         session.ai_counter += 1
-        progress_bar(ai_bar, 10)
+        rp.run_python_process()
+        progress_bar(ai_bar, 75)
 
     hh.html('<hr />')
     
@@ -148,5 +150,5 @@ def app_main():
         filename_sec1 = c1.gen_post_filename('dou_1_')
         st.download_button('Modelo da seção 1', preformatted_sec1, file_name=filename_sec1, mime='text/plain')
     with col3:
-        st.download_button('Baixar seção 2', 'Hello Word!', file_name='fuxico.txt', mime='text/plain')
-    
+        filename_sec2 = f2.gen_post_filename('dou_2_')
+        compute_download_button(session, 'post2', f2.etl_section2_post, 'Preparar seção 2', 'Baixar seção 2', filename_sec2)
