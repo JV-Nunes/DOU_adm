@@ -5,3 +5,4 @@ compara_versoes.py
 src/__pycache__
 env/DOUadm
 data/app_password.txt
+data/dou_adm_credentials.csv
