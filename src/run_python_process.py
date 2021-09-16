@@ -36,7 +36,8 @@ def run_python_process():
     credentials = aux.load_aws_credentials()
     lamb = boto3.client('lambda', 
                         aws_access_key_id=credentials['aws_access_key_id'], 
-                        aws_secret_access_key=credentials['aws_secret_access_key'])
+                        aws_secret_access_key=credentials['aws_secret_access_key'],
+                        region_name='us-east-1')
     
     # Loop for invoking processing:
     for event in event_list:

@@ -14,6 +14,8 @@ import google.auth as ga
 from google.oauth2.service_account import Credentials
 from google.auth.exceptions import DefaultCredentialsError
 
+
+
 def load_aws_credentials_from_os():
     """
     Load AWS credentials from environmental 
@@ -122,6 +124,7 @@ def get_s3_file(bucket, key, decode=False):
     return file
 
 
+@st.cache
 def load_gcp_credentials_file_from_s3():
     """
     Downloads the GCP credentials from AWS S3 
