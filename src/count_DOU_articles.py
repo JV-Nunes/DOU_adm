@@ -87,7 +87,8 @@ def list_dynamo_items(table_name):
     credentials = aux.load_aws_credentials()
     dynamodb = boto3.resource('dynamodb', 
                         aws_access_key_id=credentials['aws_access_key_id'], 
-                        aws_secret_access_key=credentials['aws_secret_access_key'])
+                        aws_secret_access_key=credentials['aws_secret_access_key'],
+                        region_name='us-east-1')
 
     table = dynamodb.Table(table_name)
 
