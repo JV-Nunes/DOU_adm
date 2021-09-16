@@ -142,7 +142,8 @@ def string_to_credentials(json_str):
     
     cred_dict   = json.loads(json_str)
     scopes      = ['https://www.googleapis.com/auth/drive', 
-                   'https://www.googleapis.com/auth/bigquery']
+                   'https://www.googleapis.com/auth/bigquery',
+                   'https://www.googleapis.com/auth/devstorage.read_only']
     credentials = Credentials.from_service_account_info(cred_dict, scopes=scopes)
     
     return credentials
