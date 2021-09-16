@@ -93,3 +93,11 @@ def build_fmt_funcs(all_cols, prefix_fmt_pairs):
     fmt_funcs = {k: build_neg_to_dash(v) for k,v in fmt_dict.items()}
     
     return fmt_funcs
+
+
+def style_below_step(v, props='', step=-10):
+    """
+    To be used together with:
+        df.applymap(style_below_step, props='background-color:pink;')
+    """
+    return props if v < step else None

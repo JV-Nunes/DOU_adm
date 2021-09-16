@@ -21,16 +21,19 @@ import re
 from datetime import date
 import warnings
 import subprocess
-import google.auth
+#import google.auth
 import os
 import csv
 
 import random_zaplink as rz
+import auxiliar as aux
+
 
 ### FUNCTIONS ###
 
-
-def bigquery_to_pandas(query, project='gabinete-compartilhado', credentials_file='/home/skems/gabinete/projetos/keys-configs/gabinete-compartilhado.json'):
+def bigquery_to_pandas(query, project='gabinete-compartilhado', 
+                       credentials_file='/home/skems/gabinete/projetos/keys-configs/gabinete-compartilhado.json'):
+    
     """
     Run a query in Google BigQuery and return its results as a Pandas DataFrame. 
 
@@ -48,14 +51,8 @@ def bigquery_to_pandas(query, project='gabinete-compartilhado', credentials_file
     """
 
     # Set authorization to access GBQ and gDrive:
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_file
-
-    
-    credentials, project = google.auth.default(scopes=[
-        'https://www.googleapis.com/auth/drive',
-        'https://www.googleapis.com/auth/bigquery',
-    ])
-    
+    credentials = aux.load_gcp_credentials(credentials_file)
+        
     return pd.read_gbq(query, project_id=project, dialect='standard', credentials=credentials)
 
 

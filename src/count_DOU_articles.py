@@ -22,12 +22,14 @@ from lxml import html
 import json
 import datetime as dt
 import boto3
-import os
-import google.auth
+#import os
+#import google.auth
 from google.cloud import bigquery
 from google.cloud import storage
 import pandas as pd
 import numpy as np
+
+import auxiliar as aux
 
 debug = False
 
@@ -81,7 +83,11 @@ def list_dynamo_items(table_name):
     Return a list of all items in a AWS dynamoDB table
     `table_name`.
     """
-    dynamodb = boto3.resource('dynamodb')
+    
+    credentials = aux.load_aws_credentials()
+    dynamodb = boto3.resource('dynamodb', 
+                        aws_access_key_id=credentials['aws_access_key_id'], 
+                        aws_secret_access_key=credentials['aws_secret_access_key'])
 
     table = dynamodb.Table(table_name)
 
@@ -100,7 +106,12 @@ def list_s3_files(bucket, prefix):
     Returns a list of files in AWS in a given `bucket` and with a given `prefix`.
     """
         
-    s3 = boto3.client('s3')
+    # Instantiate client:
+    credentials = aux.load_aws_credentials()
+    s3 = boto3.client('s3', 
+                        aws_access_key_id=credentials['aws_access_key_id'], 
+                        aws_secret_access_key=credentials['aws_secret_access_key'])
+
 
     if type(prefix) != list:
         prefix = [prefix]
@@ -147,9 +158,9 @@ def list_blobs_with_prefix(bucket_name, prefix, delimiter=None):
         a/b/
     """
 
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = '/home/skems/gabinete/projetos/keys-configs/gabinete-compartilhado.json'
-    
-    storage_client = storage.Client()
+    credentials = aux.load_gcp_credentials()
+    project = 'gabinete-compartilhado'
+    storage_client = storage.Client(project=project, credentials=credentials)
 
     # Note: Client.list_blobs requires at least package version 1.17.0.
     blobs = storage_client.list_blobs(
@@ -234,16 +245,11 @@ def query_bigquery(query):
     """
     Run a `query` in Google BigQuery and return the results as a list of dicts.
     """
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = '/home/skems/gabinete/projetos/keys-configs/gabinete-compartilhado.json'
     
-    # Create credentials with Drive & BigQuery API scopes
-    # Both APIs must be enabled for your project before running this code
-    credentials, project = google.auth.default(scopes=[
-        'https://www.googleapis.com/auth/drive',
-        'https://www.googleapis.com/auth/bigquery',
-    ])
-    
-    bq = bigquery.Client(credentials=credentials, project=project)\
+    # Instantiate client w/ credentials:    
+    credentials = aux.load_gcp_credentials()
+    project = 'gabinete-compartilhado'
+    bq = bigquery.Client(credentials=credentials, project=project)
     
     result = bq.query(
         query,
@@ -377,7 +383,7 @@ def failed_capture_actions(step_name, error_msgs, counts, exception):
     """
     
     # Hard-coded:
-    failed_val   = 'Fail'
+    failed_val   = -666
     failed_entry = {'1': failed_val, '2': failed_val, '3': failed_val, 
                     'e': failed_val, 'source': failed_val, 'total': failed_val, 
                     'tot-3': failed_val}

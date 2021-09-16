@@ -11,11 +11,14 @@ import sys
 import boto3
 import json
 
+import auxiliar as aux
 
 def run_python_process():
     """
     Call AWS Lambda function 'python-process' to run sorting
-    models for DOU sections 1 and 2.
+    models for DOU sections 1 and 2. If `os_credentials` is
+    True, expect AWS credentials to be saved to environment 
+    variables.
     """
     
     # List of processing to do:
@@ -29,7 +32,11 @@ def run_python_process():
     event_list = [event1, event2]
     #event_list = [event1]
     
-    lamb = boto3.client('lambda')
+    # Instantiate client:
+    credentials = aux.load_aws_credentials()
+    lamb = boto3.client('lambda', 
+                        aws_access_key_id=credentials['aws_access_key_id'], 
+                        aws_secret_access_key=credentials['aws_secret_access_key'])
     
     # Loop for invoking processing:
     for event in event_list:

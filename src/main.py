@@ -91,8 +91,11 @@ def app_main():
     # Count articles along the capture pipeline:
     df, error_msgs = counts_dataframe(session.map_counter)
     # Display counts DataFrame:
-    fmt_funcs = generate_formatters(df)
-    st.dataframe(df.style.format(fmt_funcs))
+    try:
+        fmt_funcs = generate_formatters(df)
+        st.dataframe(df.style.format(fmt_funcs).applymap(ff.style_below_step, props='background-color:pink;'))
+    except:
+        st.dataframe(df)
     for msg in error_msgs:
         st.error(msg)
         
