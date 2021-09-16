@@ -4,3 +4,4 @@ compara_versoes.py
 .ipynb_checkpoints/
 src/__pycache__
 env/DOUadm
+data/app_password.txt

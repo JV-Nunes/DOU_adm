@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import htmlhacks as hh
 import main as mm
@@ -13,7 +14,7 @@ def wrong_credential(password):
 
     correct = 'meteoro'
 
-    if password == correct:
+    if password == os.environ['DOU_ADM_PASSWORD']:
         return False
     else:
         return True
