@@ -417,30 +417,31 @@ def count_through_pipeline():
     error_msgs = []
 
     # Count on website:
-    try:
-        site_counts = count_website(current_date, all_sections)
-        get_total3(site_counts, all_sections)
-        counts.append(site_counts)
-    except Exception as e:
-        failed_capture_actions('Site', error_msgs, counts, e)
-
-    # DynamoDB Slack-bot-warning counts:
-    try:
-        slack_counts = count_dynamo('dou_captured_urls', all_sections)
-        get_total3(slack_counts, all_sections)
-        slack_counts.update({'source': 'Gabi (bot no Slack)'})
-        counts.append(slack_counts)
-    except Exception as e:
-        failed_capture_actions('Gabi (bot no Slack)', error_msgs, counts, e)
-
-    # DynamoDB capture-to-Database counts:
-    try:
-        dyn_counts = count_dynamo('douDB_captured_urls', all_sections)
-        get_total3(dyn_counts, all_sections)
-        dyn_counts.update({'source': 'Sistema de captura'})
-        counts.append(dyn_counts)
-    except Exception as e:
-        failed_capture_actions('Sistema de captura', error_msgs, counts, e)
+    if False:
+        try:
+            site_counts = count_website(current_date, all_sections)
+            get_total3(site_counts, all_sections)
+            counts.append(site_counts)
+        except Exception as e:
+            failed_capture_actions('Site', error_msgs, counts, e)
+    
+        # DynamoDB Slack-bot-warning counts:
+        try:
+            slack_counts = count_dynamo('dou_captured_urls', all_sections)
+            get_total3(slack_counts, all_sections)
+            slack_counts.update({'source': 'Gabi (bot no Slack)'})
+            counts.append(slack_counts)
+        except Exception as e:
+            failed_capture_actions('Gabi (bot no Slack)', error_msgs, counts, e)
+    
+        # DynamoDB capture-to-Database counts:
+        try:
+            dyn_counts = count_dynamo('douDB_captured_urls', all_sections)
+            get_total3(dyn_counts, all_sections)
+            dyn_counts.update({'source': 'Sistema de captura'})
+            counts.append(dyn_counts)
+        except Exception as e:
+            failed_capture_actions('Sistema de captura', error_msgs, counts, e)
     
     # S3 counts:
     try:
@@ -451,23 +452,24 @@ def count_through_pipeline():
     except Exception as e:
         failed_capture_actions('Cloud da Amazon', error_msgs, counts, e)
 
-    # Storage counts:
-    try:
-        storage_counts = count_storage(current_date, all_sections)
-        get_total3(storage_counts, all_sections)
-        storage_counts.update({'source': 'Cloud do Google'})
-        counts.append(storage_counts)
-    except Exception as e:
-        failed_capture_actions('Cloud do Google', error_msgs, counts, e)
-    
-    # BigQuery (ranqueados auto table) counts:
-    try:
-        auto_counts = count_rank_auto(current_date, all_sections)
-        get_total3(auto_counts, all_sections)
-        auto_counts.update({'source': 'Ranqueados pela IA'})
-        counts.append(auto_counts)
-    except Exception as e:
-        failed_capture_actions('Ranqueados pela IA', error_msgs, counts, e)    
+    if False:
+        # Storage counts:
+        try:
+            storage_counts = count_storage(current_date, all_sections)
+            get_total3(storage_counts, all_sections)
+            storage_counts.update({'source': 'Cloud do Google'})
+            counts.append(storage_counts)
+        except Exception as e:
+            failed_capture_actions('Cloud do Google', error_msgs, counts, e)
+        
+        # BigQuery (ranqueados auto table) counts:
+        try:
+            auto_counts = count_rank_auto(current_date, all_sections)
+            get_total3(auto_counts, all_sections)
+            auto_counts.update({'source': 'Ranqueados pela IA'})
+            counts.append(auto_counts)
+        except Exception as e:
+            failed_capture_actions('Ranqueados pela IA', error_msgs, counts, e)    
 
     # Cria dataframe:
     df = pd.DataFrame(counts)
