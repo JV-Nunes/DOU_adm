@@ -273,26 +273,40 @@ def standardize_cargos(text_series):
     return new_text_series
 
 
-def add_label_to_df(df, orgao_label_df, lookup_col='orgao'):
+def add_label_to_df(df, orgao_label_df, lookup_col='orgao', label_col='label', input_label=None):
     """
-    Modify `df` (Pandas DataFrame) in place by adding a 'label'
-    column that translates regex patterns looked for in `df` column 
-    `lookup_col` (default 'orgao') to labels. The regex patterns and the 
-    respective labels are stored in columns 'regex' and 'label 'from 
-    `orgao_label_df` (Pandas DataFrame).
+    Modify `df` (Pandas DataFrame) in place by adding a label
+    column named `label_col` that translates regex patterns looked 
+    for in `df` column `lookup_col` (default 'orgao') to labels. 
+    The regex patterns and the respective labels are stored in columns 
+    'regex' and 'label 'from `orgao_label_df` (Pandas DataFrame).
+    
+    If `input_label` is different than None (i.e. a string or a list 
+    of str), use the regex-label correspondence from `orgao_label_df` 
+    to modify the value in the `df`'s `label_col` column for rows whose 
+    label was previously set to `input_label`.
     """
-    df['label'] = None
+    
+    # Initialize column to None if no input label was provided:
+    if input_label == None:
+        df[label_col] = None
+    # Standardize input label: 
+    elif type(input_label) == str:
+        input_label = [input_label]
 
     for i in range(len(orgao_label_df)):
 
         # Get one regex-label pair:
         regex = orgao_label_df.loc[i, 'regex']
         label = orgao_label_df.loc[i, 'label']
-
-        df.loc[(df[lookup_col].str.contains(regex)) & (df['label'].isnull()), 'label'] = label
+        
+        if input_label == None:
+            df.loc[df[lookup_col].str.contains(regex) & df[label_col].isnull(), label_col] = label
+        else:
+            df.loc[df[lookup_col].str.contains(regex) & df[label_col].isin(input_label), label_col] = label
     
     # Default:
-    df['label'].fillna('Outros')
+    df[label_col].fillna('Outros')
 
     
 def act_importance(text):
@@ -556,7 +570,7 @@ def sort_orgaos_by_acts_importance(message_df, orgao_importance):
     return ordered_sections
 
 
-def get_ranked_section2(save_data=False, verbose=False):
+def get_ranked_section2(save_data=False, verbose=False, test=False):
     """
     Download manually ranked DOU 2 articles from Google sheets
     via BigQuery. Query and filename are hard-coded. Filtering 
@@ -569,10 +583,12 @@ def get_ranked_section2(save_data=False, verbose=False):
     verbose : bool
         Whether or not to print log messages along the funcion
         execution.
+    test : bool
+        Whether to download a random sample of manually ranked 
+        section 2 articles for test purposes.
         
     Return
     ------
-    
     articles_df : DataFrame
         The data from DOU section 2 ranking in Google sheets.
     """
@@ -583,15 +599,60 @@ def get_ranked_section2(save_data=False, verbose=False):
     FROM `gabinete-compartilhado.executivo_federal_dou.sheets_classificacao_secao_2`
     WHERE relevancia IS NOT NULL
     AND   relevancia >= 3
+    """ 
+    test_query = """
+    SELECT relevancia, identifica, secao, edicao, data_pub, orgao, ementa, resumo, fulltext, assina, cargo, url 
+    FROM `gabinete-compartilhado.executivo_federal_dou.artigos_classificados`
+    WHERE secao = 2 
+    AND relevancia IS NOT NULL
+    AND relevancia >= 3
+    AND PARSE_DATE('%Y-%m-%d', data_pub) > '2021-01-01'
+    ORDER BY RAND()
     """
     todays_dou_data  = 'temp/daily_ranked_dou_2_set.csv'
+    test_dou_data    = 'temp/test_dou_2_set.csv'
     
     # Download today's ranked DOU (section 2) materias:
-    articles_df = load_data_from_local_or_bigquery(prod_query, todays_dou_data, force_bigquery=True, save_data=save_data)
+    if test == True:
+        articles_df = load_data_from_local_or_bigquery(test_query, test_dou_data)
+    else:
+        articles_df = load_data_from_local_or_bigquery(prod_query, todays_dou_data, 
+                                                       force_bigquery=True, 
+                                                       save_data=save_data)
     if verbose:
         print('# matérias (all):', len(articles_df))
         
     return articles_df
+
+
+def gen_minister_regex(orgao_label, from_regex='Ministério', to_regex='Ministr[ao] de Estado'):
+    """
+    Create a new DataFrame by taking `orgao_label` (DataFrame
+    with a column named 'regex'), selecting the rows containing 
+    `from_regex` in column 'regex' and replacing `from_regex` 
+    with `to_regex`.
+    """
+    
+    ministro_label = orgao_label.loc[orgao_label['regex'].str.contains(from_regex)].copy()
+    ministro_label['regex'] = ministro_label['regex'].str.replace(from_regex, to_regex)
+    ministro_label.reset_index(drop=True, inplace=True)
+    
+    return ministro_label
+
+
+def build_message_df(cleaned_texts, articles_df):
+    """
+    Use the prepared texts in `cleaned_texts` (Series of str)
+    and relevant information from `articles_df` (DataFrame of ranked
+    DOU articles) to build a DataFrame with zap message information.
+    """
+    message_df = pd.DataFrame()
+    message_df['text']       = cleaned_texts
+    message_df['importance'] = cleaned_texts.apply(act_importance)
+    message_df['section']    = articles_df['label'][cleaned_texts.index]
+    message_df['url']        = articles_df['url'][cleaned_texts.index]
+
+    return message_df
 
 
 def process_ranked_articles(articles_df, orgao_label, verbose=False):
@@ -623,7 +684,7 @@ def process_ranked_articles(articles_df, orgao_label, verbose=False):
     if verbose:
         print('Processing the matérias...')
     
-    # Add label tag to all texts:
+    # Add label tag (orgão) to all texts:
     add_label_to_df(articles_df, orgao_label)
     
     # Use regex to detect typical act verbs:
@@ -634,7 +695,7 @@ def process_ranked_articles(articles_df, orgao_label, verbose=False):
     
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        
+    
         # Get articles with default act detectors:
         with_act_regex_df = articles_df.loc[articles_df.fulltext.str.contains(act_regex, case=False)]
         if verbose:
@@ -647,21 +708,23 @@ def process_ranked_articles(articles_df, orgao_label, verbose=False):
         # Clean acts for posting:
         cleaned_with_acts = prepare_with_acts(with_act_regex_df['fulltext'], act_regex)
         cleaned_no_acts   = prepare_no_acts(no_act_regex_df['fulltext'])
-        # Join both kinds of matérias:
-        cleaned_all = pd.concat([cleaned_with_acts, cleaned_no_acts], sort=False)
-    
-    
-    ### Prepare the message:
-    if verbose:
-        print('Preparing the post...')
-    
-    # Build zap message DataFrame:
-    message_df = pd.DataFrame()
-    message_df['text']       = cleaned_all
-    message_df['importance'] = cleaned_all.apply(act_importance)
-    message_df['section']    = articles_df['label'][cleaned_all.index]
-    message_df['url']        = articles_df['url'][cleaned_all.index]
-    message_df = message_df.reset_index(drop=True)
+        
+        ### Prepare the message:
+        if verbose:
+            print('Preparing the post...')
+        
+        # Build zap message DataFrames:
+        message_with_acts_df = build_message_df(cleaned_with_acts, articles_df)
+        message_no_acts_df   = build_message_df(cleaned_no_acts, articles_df)
+        
+        # Change section based on orgaos in text:
+        add_label_to_df(message_with_acts_df, orgao_label, lookup_col='text', label_col='section', input_label=['Atos do Executivo', 'Presidência'])
+        ministro_label = gen_minister_regex(orgao_label)
+        add_label_to_df(message_with_acts_df, ministro_label, lookup_col='text', label_col='section', input_label=['Atos do Executivo', 'Presidência'])
+        
+        # Concatenate both kinds of messages into a single DataFrame:
+        message_df = pd.concat([message_with_acts_df, message_no_acts_df], sort=False)
+        message_df = message_df.reset_index(drop=True)
 
     return message_df 
 
