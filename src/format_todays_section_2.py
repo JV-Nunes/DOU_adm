@@ -262,7 +262,7 @@ def standardize_cargos(text_series):
                     ('',        r',?\s*?(?:c[óo]digo)?\s*?\W(NE)(?:\W|$),?'),
                     ('CETG ',   r',?\s*?(?:c[óo]digo)?\s*?cetg[ -]*?(iv|v|vi|vii)(?:\W|$),?'), 
                     ('FDS ',    r',?\s*?(?:c[óo]digo)?\s*?\Wfds[ -]*?(1)(?:\W|$),?'),
-                    ('FCPE ',   r',?\s*?(?:c[óo]digo)?\s*?fc?pe[ -]*?[0-9]{3}\.([1-5]),?'),
+                    ('FCPE ',   r',?\s*?(?:c[óo]digo)?\s*?fc?pe[ -]*?[0-9]{3}\.([1-6]),?'),
                     ('',        '(natureza especial)'),
                     ('CNE ',    r',?\s*?(?:c[óo]digo)?\s*?cne[ -]*?([0-9]{2}),?')]
     
@@ -318,7 +318,8 @@ def act_importance(text):
     hard-coded tags.
     """
     
-    tag_importance = [('(DAS 6)', 6), ('(DAS 5)', 5), ('(DAS 4)', 4), ('(FCPE 5)', 5), ('(FCPE 4)', 4),
+    tag_importance = [('(DAS 6)', 6), ('(DAS 5)', 5), ('(DAS 4)', 4), 
+                      ('(FCPE 6)', 6), ('(FCPE 5)', 5), ('(FCPE 4)', 4),
                       ('(CGE I)', 5), ('(CGE II)', 4)]
     
     for tag, importance in tag_importance:
@@ -421,7 +422,8 @@ def name_to_sigla(text_series):
     """
 
     # Hard-coded acronyms and names of órgãos:
-    sigla_list = ['FNDE', 'IBAMA', 'ICMBio', 'INCRA', 'FUNAI', 'CAPES', 'INEP', 'CNPq', 'ABIN']
+    sigla_list = ['FNDE', 'IBAMA', 'ICMBio', 'INCRA', 'FUNAI', 'CAPES', 'INEP', 
+                  'CNPq', 'ABIN', 'INSS', 'IBGE', 'ANATEL']
     orgao_list = ['Fundo Nacional de Desenvolvimento da Educa[cç][aã]o',
                   'Instituto Brasileiro do Meio Ambiente e dos Recursos Naturais Renov[aá]veis',
                   'Instituto Chico Mendes de Conserva[cç][aã]o da Biodiversidade',
@@ -430,7 +432,10 @@ def name_to_sigla(text_series):
                   'Coordena[cç][aã]o de Aperfei[cç]oamento de Pessoal de N[ií]vel Superior',
                   'Instituto Nacional de Estudos e Pesquisas Educacionais An[ií]sio Teixeira',
                   'Conselho Nacional de Desenvolvimento Cient[ií]fico e Tecnol[oó]gico',
-                  'Ag[eê]ncia Brasileira de Intelig[eê]ncia']
+                  'Ag[eê]ncia Brasileira de Intelig[eê]ncia',
+                  'Instituto Nacional do Seguro Social', 
+                  'Fundação Instituto Brasileiro de Geografia e Estatística', 
+                  'Agência Nacional de Telecomunicações']
     # Create robust regexes out of name and acronym:
     regex_list = [prep_orgao_regex(name, acronym) for name, acronym in zip(orgao_list, sigla_list)]
     
@@ -465,10 +470,19 @@ def assign_emoji(act_text):
     """
     
     # List of regexes and emojis. The list is ordered by preference:
-    regex_emoji = [('substitu', '🎒'), (r'pol[ií]cia\s*?(?:rodovi[aá]ria)?\s*?federal', '👮🏻'),
-               (r'\(DAS 6\)', '👑'), (r'\((?:DAS|FCPE) 5\)', '🎩'), (r'\((?:DAS|FCPE) 4\)', '🧢'),  
-               (r'\((?:CA|CGE) I{1,3}\)', '💼'), (r'\(CDT\)', '👓'), 
-               (r'(?:grupo de trabalho|comitê|conselho)', '💬')]
+    regex_emoji = [('substitu', '⏱️'), 
+                   (r'pol[ií]cia\s*?(?:rodovi[aá]ria)?\s*?federal', '👮🏻'),
+                   (r'(?:Nomeia|Designa).*\((?:DAS|FCPE) 6\)', '👑'), 
+                   (r'(?:Nomeia|Designa).*\((?:DAS|FCPE) 5\)', '🎩'), 
+                   (r'(?:Nomeia|Designa).*\((?:DAS|FCPE) 4\)', '🧢'),
+                   (r'(?:Exonera|Dispensa).*\((?:DAS|FCPE) 6\)', '💼'), 
+                   (r'(?:Exonera|Dispensa).*\((?:DAS|FCPE) 5\)', '🧳'), 
+                   (r'(?:Exonera|Dispensa).*\((?:DAS|FCPE) 4\)', '🎒'),  
+                   (r'\((?:CA|CGE) I{1,3}\)', '👓'), (r'\(CDT\)', '👓'), 
+                   (r'(?:grupo de trabalho|comitê|conselho|comissão|grupo gestor)', '💬'),
+                   (r'General|Almirante|Brigadeiro', '👨🏻‍✈️'),
+                   (r'(?:Nomeia|Designa).* Secretári', '👑'), 
+                   (r'(?:Exonera|Dispensa).* Secretári', '💼')]
     
     # Look for patterns:
     for regex, emoji in regex_emoji:
