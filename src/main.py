@@ -127,7 +127,7 @@ def app_main():
     # Link to sheet & others:
     
     ranking_sheet_url = 'https://docs.google.com/spreadsheets/d/11dnbTxiighjkq8LzmKZAJ8PsrI2EOG6yNw4InWPhTGE'
-    vetos_url = 'https://www.in.gov.br/leiturajornal?org=Presid%C3%AAncia%20da%20Rep%C3%BAblica&ato=Despacho'
+    vetos_url = 'https://www.in.gov.br/consulta/-/buscar/dou?q=%22decidi+vetar%22&s=do1&exactDate=day&orgPrin=Presid%C3%AAncia+da+Rep%C3%BAblica'
     slack_url = 'https://app.slack.com/client/TGM1R75MM/CK41CADJA'
 
     col1, col2, col3, col4 = st.columns(four_columns)
