@@ -423,7 +423,7 @@ def name_to_sigla(text_series):
 
     # Hard-coded acronyms and names of órgãos:
     sigla_list = ['FNDE', 'IBAMA', 'ICMBio', 'INCRA', 'FUNAI', 'CAPES', 'INEP', 
-                  'CNPq', 'ABIN', 'INSS', 'IBGE', 'ANATEL']
+                  'CNPq', 'ABIN', 'INSS', 'IBGE', 'ANATEL', 'CADE', 'FUNASA']
     orgao_list = ['Fundo Nacional de Desenvolvimento da Educa[cç][aã]o',
                   'Instituto Brasileiro do Meio Ambiente e dos Recursos Naturais Renov[aá]veis',
                   'Instituto Chico Mendes de Conserva[cç][aã]o da Biodiversidade',
@@ -435,7 +435,10 @@ def name_to_sigla(text_series):
                   'Ag[eê]ncia Brasileira de Intelig[eê]ncia',
                   'Instituto Nacional do Seguro Social', 
                   'Fundação Instituto Brasileiro de Geografia e Estatística', 
-                  'Agência Nacional de Telecomunicações']
+                  'Agência Nacional de Telecomunicações',
+                  'Conselho Administrativo de Defesa Econômica',
+                  'Fundação Nacional de Saúde']
+    
     # Create robust regexes out of name and acronym:
     regex_list = [prep_orgao_regex(name, acronym) for name, acronym in zip(orgao_list, sigla_list)]
     
@@ -826,7 +829,7 @@ def create_post(message_df, orgao_label, verbose=False):
     post = write_to_post(post, '*Gabinete Compartilhado Acredito*\n_Para se inscrever no boletim, acesse o link:_\n' + zap_link)
 
     # Extra emojis for later formatting:
-    post = write_to_post(post, '\n\n👑🎩🧢👨🏻‍✈️💬▪️💼⚖🎓️➕')
+    post = write_to_post(post, '\n\n👑🎩🧢👨🏻‍✈️💬▪️💼⚖🎓️➕🧳')
 
     return post
 
