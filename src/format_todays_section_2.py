@@ -264,7 +264,9 @@ def standardize_cargos(text_series):
                     ('FDS ',    r',?\s*?(?:c[óo]digo)?\s*?\Wfds[ -]*?(1)(?:\W|$),?'),
                     ('FCPE ',   r',?\s*?(?:c[óo]digo)?\s*?fc?pe[ -]*?[0-9]{3}\.([1-6]),?'),
                     ('',        '(natureza especial)'),
-                    ('CNE ',    r',?\s*?(?:c[óo]digo)?\s*?cne[ -]*?([0-9]{2}),?')]
+                    ('CNE ',    r',?\s*?(?:c[óo]digo)?\s*?cne[ -]*?([0-9]{2}),?'),
+                    ('CCE ',     r',?\s*?(?:c[óo]digo)?\s*?cce[ -]*?[1-3]{1}\.([0-9]{1,2}),?'),
+                    ('FCE ',     r',?\s*?(?:c[óo]digo)?\s*?fce[ -]*?[1-3]{1}\.([0-9]{1,2}),?')]
     
     new_text_series = text_series.copy()
     for prefix, regex in prefix_regex:
@@ -476,11 +478,17 @@ def assign_emoji(act_text):
     regex_emoji = [('substitu', '⏱️'), 
                    (r'pol[ií]cia\s*?(?:rodovi[aá]ria)?\s*?federal', '👮🏻'),
                    (r'(?:Nomeia|Designa).*\((?:DAS|FCPE) 6\)', '👑'), 
+                   (r'(?:Nomeia|Designa).*\((?:CCE|FCE) (?:17|18)\)', '👑'), 
                    (r'(?:Nomeia|Designa).*\((?:DAS|FCPE) 5\)', '🎩'), 
+                   (r'(?:Nomeia|Designa).*\((?:CCE|FCE) (?:15|16)\)', '🎩'), 
                    (r'(?:Nomeia|Designa).*\((?:DAS|FCPE) 4\)', '🧢'),
+                   (r'(?:Nomeia|Designa).*\((?:CCE|FCE) (?:13|14)\)', '🧢'), 
                    (r'(?:Exonera|Dispensa).*\((?:DAS|FCPE) 6\)', '💼'), 
+                   (r'(?:Exonera|Dispensa).*\((?:CCE|FCE) (?:17|18)\)', '💼'), 
                    (r'(?:Exonera|Dispensa).*\((?:DAS|FCPE) 5\)', '🧳'), 
-                   (r'(?:Exonera|Dispensa).*\((?:DAS|FCPE) 4\)', '🎒'),  
+                   (r'(?:Exonera|Dispensa).*\((?:CCE|FCE) (?:15|16)\)', '🧳'), 
+                   (r'(?:Exonera|Dispensa).*\((?:DAS|FCPE) 4\)', '🎒'),
+                   (r'(?:Exonera|Dispensa).*\((?:CCE|FCE) (?:13|14)\)', '🎒'),   
                    (r'\((?:CA|CGE) I{1,3}\)', '👓'), (r'\(CDT\)', '👓'), 
                    (r'(?:grupo de trabalho|comitê|conselho|comissão|grupo gestor)', '💬'),
                    (r'General|Almirante|Brigadeiro', '👨🏻‍✈️'),
