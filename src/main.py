@@ -149,7 +149,7 @@ def app_main():
     with col1:
         st.markdown('### Preparação do boletim')
     with col2:
-        preformatted_sec1 = c1.gen_preformatted_post('../templates/modelo_zap_materias_dou_1.txt')
+        preformatted_sec1 = c1.gen_preformatted_post('templates/modelo_zap_materias_dou_1.txt')
         filename_sec1 = c1.gen_post_filename('dou_1_')
         st.download_button('Modelo da seção 1', preformatted_sec1, file_name=filename_sec1, mime='text/plain')
     with col3:
