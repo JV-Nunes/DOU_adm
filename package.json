@@ -1,0 +1,20 @@
+{
+    "name": "DOU_adm",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+        "build": "echo \"No build specified\" && exit 1",
+        "test": "echo \"No test specified\" && exit 1",
+        "start": "cd src/ && sh setup.sh && streamlit run app.py"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/JV-Nunes/DOU_adm.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/JV-Nunes/DOU_adm/issues"
+    },
+    "homepage": "https://github.com/JV-Nunes/DOU_adm#readme"
+}
