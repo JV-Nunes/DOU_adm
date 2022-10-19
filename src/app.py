@@ -46,7 +46,7 @@ def authentication(block=True):
 st.set_page_config(page_title='Adm. do Boletim DOU Acredito', page_icon='🔍')
 
 # Carrega CSS:
-hh.localCSS("style.css")
+hh.localCSS("./style.css")
 
 # Banner de título do app:
 hh.banner('Boletim DOU',  icon_url='https://storage.googleapis.com/brutos-publicos/cara_a_cara/acredito_fundobranco_pad.png',
