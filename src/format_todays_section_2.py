@@ -842,7 +842,7 @@ def create_post(message_df, orgao_label, verbose=False):
     return post
 
 
-def etl_section2_post(orgao_label_path='../data/correspondencia_orgao_label_DOU_2.csv', verbose=False):
+def etl_section2_post(orgao_label_path='data/correspondencia_orgao_label_DOU_2.csv', verbose=False):
     """
     Load ranked articles from DOU section 2, stored in Google sheets,
     filter and process them and write a whastapp post. All processing
