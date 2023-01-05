@@ -60,7 +60,13 @@ def get_artigos_do(data, secao):
         res = session.get(url, verify=False)
     tree  = html.fromstring(res.content)
     xpath = '//*[@id="params"]/text()'
-    return json.loads(tree.xpath(xpath)[0])['jsonArray']
+    try:
+        content = json.loads(tree.xpath(xpath)[0])['jsonArray']
+    except Exception as e:
+        print('Error in get_artigos_do() for url: ' + url)
+        print(e)
+        content = []
+    return content
 
 
 def brasilia_day(yesterday=False):
