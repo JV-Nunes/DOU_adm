@@ -390,7 +390,7 @@ def failed_capture_actions(step_name, error_msgs, counts, exception, date=None):
                     'tot-3': failed_val}
     
     # Append failed result to error messages and article counts:
-    error_msgs.append('Failed {} capture: {} for date {date}'.format(step_name, date, str(exception)))
+    error_msgs.append('Failed {} capture for date {}: {}'.format(step_name, date, str(exception)))
     failed_entry.update({'source': step_name})
     counts.append(failed_entry)
 
