@@ -53,14 +53,17 @@ def get_artigos_do(data, secao):
     session = requests.Session()
     session.mount('http://www.in.gov.br', requests.adapters.HTTPAdapter(max_retries=3))
     
-    # Captura a lista de artigos daquele dia e seção:
     try:
-        res = session.get(url)
-    except requests.exceptions.SSLError:
-        res = session.get(url, verify=False)
-    tree  = html.fromstring(res.content)
-    xpath = '//*[@id="params"]/text()'
-    return json.loads(tree.xpath(xpath)[0])['jsonArray']
+        # Captura a lista de artigos daquele dia e seção:
+        try:
+            res = session.get(url)
+        except requests.exceptions.SSLError:
+            res = session.get(url, verify=False)
+        tree  = html.fromstring(res.content)
+        xpath = '//*[@id="params"]/text()'
+        return json.loads(tree.xpath(xpath)[0])['jsonArray']
+    except Exception as e:
+        raise Exception('Error while getting DOU articles. ', str(e))
 
 
 def brasilia_day(yesterday=False):
