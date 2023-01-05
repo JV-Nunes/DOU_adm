@@ -365,7 +365,7 @@ def print_counts(source_counts, all_sections):
     print('  {:5d}'.format(source_counts['tot-3']))
 
 
-def failed_capture_actions(step_name, error_msgs, counts, exception):
+def failed_capture_actions(step_name, error_msgs, counts, exception, date=None):
     """
     Add entries to `error_msgs` (list or str) and `counts` (list of dict)
     representing failed actions (modify in place).
@@ -390,7 +390,7 @@ def failed_capture_actions(step_name, error_msgs, counts, exception):
                     'tot-3': failed_val}
     
     # Append failed result to error messages and article counts:
-    error_msgs.append('Failed {} capture: {}'.format(step_name, str(exception)))
+    error_msgs.append('Failed {} capture: {} for date {date}'.format(step_name, date, str(exception)))
     failed_entry.update({'source': step_name})
     counts.append(failed_entry)
 
@@ -412,7 +412,6 @@ def count_through_pipeline():
     # Hard-coded & settings:
     all_sections = ['1', '2', '3', 'e']
     current_date = brasilia_day()
-    print('Current Date (Brasilia):', current_date.strftime('%Y-%m-%d'))
     
     counts = []
     error_msgs = []
@@ -423,7 +422,8 @@ def count_through_pipeline():
         get_total3(site_counts, all_sections)
         counts.append(site_counts)
     except Exception as e:
-        failed_capture_actions('Site', error_msgs, counts, e)
+        str_date = current_date.strftime('%Y-%m-%d')
+        failed_capture_actions('Site', error_msgs, counts, e, str_date)
 
     # DynamoDB Slack-bot-warning counts:
     try:
