@@ -60,13 +60,7 @@ def get_artigos_do(data, secao):
         res = session.get(url, verify=False)
     tree  = html.fromstring(res.content)
     xpath = '//*[@id="params"]/text()'
-    try:
-        content = json.loads(tree.xpath(xpath)[0])['jsonArray']
-    except Exception as e:
-        print('Error in get_artigos_do() for url: ' + url)
-        print(e)
-        content = []
-    return content
+    return json.loads(tree.xpath(xpath)[0])['jsonArray']
 
 
 def brasilia_day(yesterday=False):
@@ -197,7 +191,10 @@ def count_website(current_date, all_sections):
     website_n_articles = {}
     total = 0
     for s in all_sections:
-        website_n_articles[s] = len(get_artigos_do(current_date, s))
+        try:
+            website_n_articles[s] = len(get_artigos_do(current_date, s))
+        except:
+            website_n_articles[s] = 0
         total = total + website_n_articles[s]
     website_n_articles['source'] = 'Site'
     website_n_articles['total']  = total
