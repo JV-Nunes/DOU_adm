@@ -191,10 +191,7 @@ def count_website(current_date, all_sections):
     website_n_articles = {}
     total = 0
     for s in all_sections:
-        try:
-            website_n_articles[s] = len(get_artigos_do(current_date, s))
-        except:
-            website_n_articles[s] = 0
+        website_n_articles[s] = len(get_artigos_do(current_date, s))
         total = total + website_n_articles[s]
     website_n_articles['source'] = 'Site'
     website_n_articles['total']  = total
