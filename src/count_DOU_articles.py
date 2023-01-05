@@ -63,7 +63,7 @@ def get_artigos_do(data, secao):
         xpath = '//*[@id="params"]/text()'
         return json.loads(tree.xpath(xpath)[0])['jsonArray']
     except Exception as e:
-        raise Exception('Error while getting DOU articles. ', str(e))
+        raise Exception(e)
 
 
 def brasilia_day(yesterday=False):
