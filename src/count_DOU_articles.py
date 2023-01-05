@@ -412,6 +412,7 @@ def count_through_pipeline():
     # Hard-coded & settings:
     all_sections = ['1', '2', '3', 'e']
     current_date = brasilia_day()
+    print('Current Date (Brasilia):', current_date.strftime('%Y-%m-%d'))
     
     counts = []
     error_msgs = []
