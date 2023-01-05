@@ -22,6 +22,7 @@ from lxml import html
 import json
 import datetime as dt
 import boto3
+import cloudscraper
 #import os
 #import google.auth
 from google.cloud import bigquery
@@ -49,21 +50,19 @@ def get_artigos_do(data, secao):
     # Exemplo de URL: 'http://www.in.gov.br/leiturajornal?data=13-05-2019&secao=do1'
     url   = 'http://www.in.gov.br/leiturajornal?data=' + data_string + '&secao=do' + str(secao)
 
-    # Specifies number of retries for GET:
-    session = requests.Session()
-    session.mount('http://www.in.gov.br', requests.adapters.HTTPAdapter(max_retries=3))
+    # Specifies number of retries for GET (DEPRECATED DUE TO CLOUDFARE):
+    # session = requests.Session()
+    # session.mount('http://www.in.gov.br', requests.adapters.HTTPAdapter(max_retries=3))
+
+    # Using cloudscraper as a workaround for the CloudFlare protection:
+    scraper = cloudscraper.create_scraper(delay=10,   browser={'custom': 'ScraperBot/1.0',})
     
-    try:
-        # Captura a lista de artigos daquele dia e seção:
-        try:
-            res = session.get(url)
-        except requests.exceptions.SSLError:
-            res = session.get(url, verify=False)
-        tree  = html.fromstring(res.content)
-        xpath = '//*[@id="params"]/text()'
-        return json.loads(tree.xpath(xpath)[0])['jsonArray']
-    except Exception as e:
-        raise Exception(e)
+    # Captura a lista de artigos daquele dia e seção:
+    res = scraper.get(url)
+    tree  = html.fromstring(res.content)
+    xpath = '//*[@id="params"]/text()'
+    return json.loads(tree.xpath(xpath)[0])['jsonArray']
+
 
 
 def brasilia_day(yesterday=False):
